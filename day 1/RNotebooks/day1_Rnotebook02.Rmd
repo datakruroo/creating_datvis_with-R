@@ -1,0 +1,357 @@
+---
+title: "Day1_02Aesthetics"
+output: html_notebook
+---
+
+# Aesthetic mapping "Color"
+
+การกำหนด aesthetic mapping ของ visual element ตัวอื่น ๆ สามารถทำได้ในทำนองเดียวกับ position กล่าวคือกำหนดผ่านอาร์กิวเมนท์ mapping ดังรูปแบบต่อไปนี้
+
+    ggplot(data = dat, mapping = aes(x, y, col, size, shape ,...))
+
+## กิจกรรม Aesthetic mapping: color
+
+**Syntax เดิม**
+
+```{r eval=F}
+library(gapminder)
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+                y = lifeExp))+
+      geom_point()
+```
+
+จากกิจกรรม Basic ggplot2
+
+1.  ขอให้ผู้เรียนทดลองกำหนด aesthetic mapping ของ color โดยจับคู่กับทวีปของประเทศ **ผลลัพธ์ที่ได้เป็นอย่างไร? ท่านคิดว่าสีที่กำหนดในทัศนภาพข้อมูลมีความเหมาะสมหรือไม่ เพราะเหตุใด?**
+2.  ลองจับคู่สี กับ จำนวนประชากรของประเทศ จากนั้นสังเกตผลลัพธ์ที่ได้ **มีความเหมือนหรือแตกต่าง กับการจับคู่กับทวีปของประเทศ อย่างไร เพราะเหตุใดจึงเป็นเช่นนั้น?**
+
+## `scale_color_XXX()` functions
+
+ผู้วิเคราะห์สามารถปรับแต่งการกำหนดสีให้กับค่าหรือระดับของตัวแปรผ่านฟังก์ชันในกลุ่ม `scale_color_XXX()`
+
+-   `scale_color_manual(name, values)`
+
+-   `scale_color_gradient(name, low, hight)`
+
+-   `scale_color_gradient2(name, low, mid, hight)`
+
+ตัวอย่างต่อไปนี้แสดงการใช้งานฟังก์ชัน`scale_color_XXX()` โดยใช้ชุดข้อมูล iris เป็นตัวอย่าง
+
+```{r fig.height = 4, eval=F}
+iris %>% ggplot(aes(x = Sepal.Length,
+                    y = Sepal.Width,
+                    col = Species))+
+  geom_point()+
+  scale_color_manual(values = c("steelblue",
+                                "orange",
+                                "maroon"))
+```
+
+```{r fig.height = 3.5, fig.width = 5, echo=F}
+iris %>% ggplot(aes(x = Sepal.Length,
+                    y = Sepal.Width,
+                    col = Species))+
+  geom_point()+
+  scale_color_manual(values = c("steelblue",
+                                "orange",
+                                "maroon"))
+```
+
+ผู้วิเคราะห์สามารถเลือกใช้สีได้หลายลักษณะ
+
+**จานสีพื้นฐาน**
+
+```{r}
+colors() %>% length()
+colors() %>% head(12)
+```
+
+**แหล่งอ้างอิงสี**
+
+-   <https://colorhunt.co/>
+
+-   <https://coolors.co/>
+
+-   <https://www.canva.com/colors/color-palettes/>
+
+-   <https://color.adobe.com/create/color-wheel>
+
+## กิจกรรม scale color
+
+ขอให้ใช้ `<scale function>` ตัวใดก็ได้ กำหนดชุดของสีที่ใช้ในแผนภาพจากกิจกรรมที่ผ่านมา โดยเลือกสีตามที่ผู้เรียนเห็นว่าเหมาะสมจากแหล่งอ้างอิงที่ให้ **ผลที่ได้เป็นอย่างไร**
+
+## ตัวอย่างการเรียกจานสีสำเร็จรูป
+
+### RColorBrewer palette
+
+```{r}
+#install.packages("RColorBrewer")
+library(RColorBrewer)
+# qualitative palette
+display.brewer.all(type = "qual")
+# sequential palette
+display.brewer.all(type = "seq")
+# diverging palette
+display.brewer.all(type = "div")
+```
+
+การเรียก hex code ของสีจาก RcolorBrewer palette
+
+-   ผู้วิเคราะห์สามารถเรียกดูจานสีได้จากฟังก์ชัน `display.brewer.all()` หรือ `display.brewer.pal()`
+
+-   การเรียกรหัสสีจากแต่ละจานสีขึ้นมา สามารถทำได้ด้วยฟังก์ชัน `brewer.pal(n, name)`
+
+```{r}
+brewer.pal(n = 5, name = "RdBu")
+brewer.pal(n = 5, name = "Dark2")
+```
+
+การเรียกลักษณะนี้จะใช้กับฟังก์ชัน `scale_color_manual()`
+
+สำหรับ ggplot2 มีฟังก์ชัน `scale_color_brewer(type, palette, direction)` ที่สามารถเรียกใช้จานสีใน package ดังกล่าวได้ง่ายขึ้น เช่น
+
+```{r}
+iris %>% ggplot(aes(x = Sepal.Length,
+                    y = Sepal.Width,
+                    col = Species))+
+  geom_point()+
+  scale_color_brewer(type = "qual", palette = "Set1")
+```
+
+### Viridis palette
+
+```{r}
+#install.packages("viridis")
+library(viridis)
+```
+
+-   `scale_color_viridis_d(alpha = 1, begin = 0, end = 1, direction = 1, option = "D")`
+
+-   `scale_color_viridis_c()`
+
+**การเรียกใช้สีจาก `Viridis color`**
+
+```{r}
+ggplot(data.frame(x = rnorm(10000), y = rnorm(10000)), aes(x = x, y = y)) +
+  geom_hex() + coord_fixed() +
+  ggtitle("option = 'A'")+
+  scale_fill_viridis(option="A") + theme_bw()
+```
+
+## grey scale color
+
+สำหรับส่ิงพิมพ์ที่เป็นขาวดำ จานสีที่เหมาะจะใช้ในทัศนภาพข้อมูลคือ grey scale color โดยสามารถกำหนดผ่านฟังก์ชัน `scale_color_grey()` โดยผลลัพธ์ที่ได้เป็นดังนี้ (สำหรับตัวแปรต่อเนื่องให้ใช้ `scale_color_gradient()` แทน)
+
+```{r eval=F}
+iris %>%
+  ggplot(aes(x = Sepal.Length, 
+             y=Sepal.Width, 
+             col=Species))+
+  geom_point()+
+  scale_color_grey(start = 0.2, end = 0.8)+
+  theme_classic()
+```
+
+## กิจกรรม : Color is Matter
+
+จากแผนภาพการกระจายระหว่าง lifeExp กับ gdpPercap ขอให้ผู้เรียนทดลองกำหนดสีให้กับจุดบนแผนภาพ โดยทดลองใช้สีให้ครบทั้ง 3 วัตถุประสงค์ และเปรียบเทียบสารสนเทศที่ได้ว่ามีความแตกต่างกันอย่างไร
+
+## สรุปผลลัพธ์ที่ได้ในขั้นตอนนี้
+
+...
+
+# Aesthetic mapping "size" and "shape"
+
+**Syntax เดิม**
+
+```{r eval=F}
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+                y = lifeExp,
+             col = continent))+
+      geom_point()+
+  scale_color_viridis_d(option="A", begin=0, end = 0.8)
+```
+
+## กิจกรรม aesthetic mapping: size
+
+จากแผนภาพการกระจายอันล่าสุด ขอให้ผู้เรียนทดลองกำหนด aesthetic mapping ของ size โดยจับคู่กับ จำนวนประชากรของประเทศ **ผลลัพธ์ที่ได้เป็นอย่างไร?**
+
+## `scale_size_XXX()`
+
+-   `scale_size(name, breaks, labels, range=c(1,6))`
+
+-   `scale_radius(name, breaks, labels, range=c(1,6))`
+
+-   `scale_size_binned(..., n.breaks)`
+
+-   `scale_size_area(..., max_size = 6)`
+
+-   `scale_size_binned_area(..., max_size = 6)`
+
+```{r}
+## datvis 1
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp, 
+             size = pop))+
+  geom_point()+
+  scale_size()
+
+## datvis 2
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp, 
+             size = pop))+
+  geom_point()+
+  scale_radius()
+```
+
+ผลลัพธ์ทั้งสองมีความแตกต่างกันอย่างไร ?
+
+## กิจกรรม : `scale_size()`
+
+ขอให้ผู้เรียนปรับแต่ง size ของจุด ให้เป็นเหมือนกับในรูปตัวอย่างด้านล่าง
+
+![](https://github.com/datakruroo/creating_datvis_with-R/blob/main/scale%20shape.png?raw=true)
+
+
+## Shape of point
+
+```{r echo=F, fig.height=4}
+generateRPointShapes<-function(){
+  oldPar<-par()
+  par(font=2, mar=c(0.5,0,0,0))
+  y=rev(c(rep(1,6),rep(2,5), rep(3,5), rep(4,5), rep(5,5)))
+  x=c(rep(1:5,5),6)
+  plot(x, y, pch = 0:25, cex=1.5, ylim=c(1,5.5), xlim=c(1,6.5), 
+       axes=FALSE, xlab="", ylab="", bg="blue")
+  text(x, y, labels=0:25, pos=3)
+  par(mar=oldPar$mar,font=oldPar$font )
+}
+generateRPointShapes()
+```
+
+
+ตัวอย่างการกำหนด aesthetic mapping ของ shape
+
+```{r eval = F}
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp, 
+             size = pop,
+             col = continent,
+             shape = continent))+
+  geom_point()+
+  theme_classic()
+```
+
+## `scale_shape_XXX()`
+
+-   `scale_shape(breaks, labels)`
+
+-   `scale_shape_binned(breaks, labels)`
+
+-   `scale_shape_manual(values)`
+
+
+# scale of the axes
+
+## Linear Scale
+
+-   `scale_x_continuous(name, breaks, labels, limits)`
+
+-   `scale_y_continuous()`
+
+-   `scale_x_discrete(name, limits, labels)`
+
+-   `scale_y_discrete()`
+
+## Logarithmic Scale
+
+-   `scale_x_log10(name, limits, labels)`
+
+-   `scale_y_log10()`
+
+## กิจกรรม
+
+ลองใช้ log transformation เพื่อปรับสเกลของแกน X ดังตัวอย่างใน ppt
+
+
+# Adding data label
+
+## Adding data label using `geom_text()`
+
+ฟังก์ชัน `geom_text()` เป็น geometric layer ที่ใช้เมื่อต้องการใส่ label ให้กับข้อมูลภายในทัศนภาพข้อมูล โดยมักใช้ร่วมกับ geometric layer ตัวอื่น เช่น `geom_point()`, `geom_bar()` เป็นต้น
+
+
+ตัวอย่างต่อไปนี้แสดงการใช้ `geom_text()` เพื่อใส่ label ให้กับข้อมูล **ผลลัพธ์ที่ได้เป็นอย่างไร?**
+
+```{r}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+             y= lifeExp, 
+             col=continent))+
+  geom_point(aes(size = pop),alpha=0.5)+
+  geom_text(aes(label = country))+
+  scale_x_log10()
+```
+
+## กิจกรรม `geom_text()`
+
+ขอให้ผู้เรียนทดลองกำหนด label ให้จุดของข้อมูลโดยปรับอาร์กิวเมนท์ของ `geom_text()` 
+
+ฟังก์ชัน `geom_text()` มีอาร์กิวเมนท์สำคัญดังนี้
+
+    geom_text(data = NULL, 
+              mapping = aes(...),
+              nudge_x = 0, nudge_y = 0,
+              check_overlap = FALSE,
+              show.legend = NA,
+              family,
+              angle)
+
+การกำหนดอาร์กิวเมนท์ดังกล่าว ทำให้ได้ทัศนภาพข้อมูลที่เหมาะสมหรือไม่
+
+## Adding data label using `geom_text_repel()`
+
+
+    geom_text_repel(data = NULL, 
+                    mapping = aes(...),
+                    nudge_x = 0, nudge_y = 0,
+                    label.r, 
+                    label.size,
+                    min.segment.length = 0.5,
+                    max.overlaps = 10,
+                    show.legend = NA,
+                    seed = NA
+                    )
+
+
+
+```{r eval = F}
+install.packages("ggrepel")
+library(ggrepel)
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap, 
+             y= lifeExp, 
+             col=continent))+
+  geom_point(aes(size = pop),alpha=0.5)+
+  geom_text_repel(aes(label = country))+
+  scale_x_log10()+
+  theme_classic()
+```
+
+**ผลลัพธ์ที่ได้จาก `geom_text()` กับ `geom_text_repel()` มีความเหมือนหรือแตกต่างกันอย่างไร**
+
+
+# กิจกรรมสรุป: Put it all together
+
+![](https://github.com/datakruroo/creating_datvis_with-R/blob/main/objective1.png?raw=true)
+
+
+
+
