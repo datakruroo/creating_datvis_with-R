@@ -100,6 +100,22 @@ gapminder %>% filter(year == "2007") %>%
 **จาก barplot และ dot plot ที่ทำให้ดูเป็นตัวอย่าง ท่านมีข้อสังเกตใดบ้างหรือไม่?**
 
 
+## กิจกรรม Global vs Local Aesthetic mapping
+
+การกำหนด aesthetic mapping สามารถทำได้ทั้งใน ggplot และ geom_XXX ผลลัพธ์ที่ได้จะมีความแตกต่างกัน เพื่อให้ผู้เรียนเข้าใจขอให้พิจารณาผลลัพธ์จากการประมวลผลคำสั่งต่อไปนี้
+
+```{r eval = F}
+# global aesthetic
+
+
+#local aesthetic
+
+
+
+```
+
+
+
 ## Order is matter
 
 ```{r fig.height = 5, echo=F}
@@ -400,6 +416,8 @@ gapminder %>%
   scale_fill_viridis_c(option = "D")+
   guides(fill = F)+
   theme_minimal()
+```
+
 
 
 ```{r echo=F, fig.height=6}
