@@ -1,0 +1,420 @@
+---
+title: "Day1_03Data Representation 1"
+output: html_notebook
+---
+
+ชุดข้อมูลที่ใช้เป็นตัวอย่างสำหรับเนื้อหาส่วนนี้คือ `gapminder`
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(gapminder)
+head(gapminder)
+```
+
+# Visualizing Amounts
+
+## Creating barplot using `geom_bar()`
+
+ใช้สร้าง barplot ได้ทั้ง simple barplot, grouped barplot และ stacked barplot มีอาร์กิวเมนท์สำคัญได้แก่
+
+-   `data` และ `mapping`
+
+-   `stat = "count"` หรือ `"identity"`
+
+-   `position = "stack"` หรือ `identity`, `dodge`
+
+-   `width`
+
+-   `orientation`
+
+-   `na.rm`
+
+### Simple barplot
+
+```{r fig.height = 4}
+gapminder %>% filter(year == "2007") %>%
+  ggplot()+
+  geom_bar(aes(x = continent, fill=continent),
+           position = "identity")
+```
+
+
+### Grouped barplot
+
+
+```{r fig.height=4}
+gapminder %>% filter(year == "2007") %>% 
+  ggplot()+
+  geom_bar(aes(x = continent, fill = lifeExp > 70),
+           position = "dodge")
+```
+
+### Stacked barplot
+
+```{r fig.height=4}
+gapminder %>% filter(year == "2007") %>% 
+  ggplot()+
+  geom_bar(aes(x = continent, fill = lifeExp > 70),
+           position = "stack")
+```
+
+## Creating Dotplot using `geom_point()`
+
+```{r echo=F, fig.height = 5}
+gapminder %>% filter(year == "2007") %>%
+  arrange(desc(lifeExp)) %>%
+  head(10) %>%
+  ggplot(aes(y=country, x=lifeExp))+
+  geom_point(aes(size=pop),col = "steelblue")+
+  theme_light()+
+  scale_size(name = "population size",range=c(3,10),
+             breaks = c(10^6, 10^7, 10^8),
+             labels = c("1", "10", "100 Million"))+
+  scale_y_discrete(name = "")+
+  scale_x_continuous("Life Expectancy (year)")
+```
+
+## Creating Lollipop plot
+
+    geom_segment(aes(x, y, xend, yend))
+
+```{r echo=F, fig.height=4}
+gapminder %>% filter(year == "2007") %>%
+  arrange(desc(lifeExp)) %>%
+  head(10) %>%
+  ggplot(aes(y=reorder(country, lifeExp), x=lifeExp))+
+  geom_segment(aes(x=70, y=reorder(country, lifeExp),
+                   xend = lifeExp,
+                   yend = reorder(country, lifeExp)), linetype = 3, col="grey60")+
+  geom_point(aes(size=pop),col = "steelblue")+
+  theme_classic()+
+  scale_size(name = "population size",range=c(3,10),
+             breaks = c(10^6, 10^7, 10^8),
+             labels = c("1", "10", "100 Million"))+
+  scale_y_discrete(name = "")+
+  scale_x_continuous("Life Expectancy (year)")
+```
+
+**จาก barplot และ dot plot ที่ทำให้ดูเป็นตัวอย่าง ท่านมีข้อสังเกตใดบ้างหรือไม่?**
+
+
+## Order is matter
+
+```{r fig.height = 5, echo=F}
+gapminder %>% filter(year == "2007") %>%
+  group_by(continent) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = reorder(continent, -n), y=n))+
+  geom_bar(stat = "identity")+
+  xlab(" ")+
+  ylab("Number of Countries")
+```
+
+## Creating Heatmap using `geom_tile()`
+
+```{r eval=F, fig.height = 6}
+gapminder %>% filter(continent == "Asia") %>%
+  ggplot(aes(x = year, 
+             y = reorder(country, lifeExp), 
+             fill = lifeExp))+
+  geom_tile()+
+  scale_fill_gradient2(low = "#A61F69",
+                       mid = "#F2921D",
+                       high ="#F1DBBF",
+                       midpoint = 65)+
+  theme_classic()
+```
+
+## กิจกรรม
+
+ทดลองสร้าง heatmap 
+
+# Visualizing Distribution
+
+## Single Variable: Histogram 
+
+การสร้าง histogram และ density plot สามารถทำได้ด้วยฟังก์ชัน `geom_histogram()`
+
+```{r}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap))+
+  geom_histogram(fill = "steelblue", col="white")
+```
+
+### กำหนด bins
+
+```{r}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = gdpPercap))+
+  geom_histogram(bins=5, fill = "steelblue", col="white")+
+  ggtitle("bins = 5")
+```
+
+## Single Variable: Density plot
+
+```{r fig.height = 4}
+gapminder %>% filter(year == "2007") %>%
+  ggplot(aes(x = lifeExp))+
+  geom_density(kernel = "gaussian")
+```
+
+## Multiple Distribution:  histogram 
+
+**Good visualization ?**
+
+```{r echo=F, fig.height = 5}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = lifeExp, fill = gdpPercap > 10000))+
+  geom_histogram(col="white")+
+  ylab("Number of countries")
+```
+
+
+## Multiple Distribution:  density plot
+
+ลองสร้าง density plot ต่อไปนี้
+
+```{r fig.height = 5}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = lifeExp, fill = gdpPercap > 10000))+
+  geom_density(col="white", alpha = 0.5)+
+  ylab("Density")+
+  theme_bw()+
+  scale_fill_brewer(name= "gdpPercap > 10000$",
+                    type="qual",
+                    palette = "Set2")
+```
+
+## กิจกรรม
+
+ขอให้ผู้เรียนสร้าง density plot เพื่อเปรียบเทียบจำนวนประชากรของประเทศในกลุ่มเอเซีย กับทุกประเทศบนโลก
+
+## Density plot: Statistical transformations
+
+-   `after_stat(density)`
+
+-   `after_stat(count)`
+
+-   `after_stat(scaled)`
+
+จำนวนประชากรของประเทศในทวีปเอเชียเปรียบเทียบกับประเทศทั้งหมดบนโลก
+
+```{r echo=F, fig.height = 5}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot()+
+  geom_density(aes(x = pop), fill="grey90",col="white", alpha = 0.5)+
+  geom_density(data = gapminder %>% filter(year == "2007", continent == "Asia"),
+               aes(x = pop), fill = "maroon", col="white",alpha=0.5)+
+  scale_x_log10(name = "Population Size",breaks=c(10^6, 10^7, 10^8, 10^9),
+                labels = c("1","10","100","1000 Millions"))+
+  theme_classic()+
+  ylab("Density")+
+  theme_bw()+
+  scale_fill_carto_d(name= "gdpPercap > 10000$",type="qualitative")+
+  ggtitle("after_stat(density)")
+  
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot()+
+  geom_density(aes(x = pop, y = after_stat(count)), fill="grey90",col="white", alpha = 0.5)+
+    geom_density(data = gapminder %>% filter(year == "2007", continent == "Asia"),
+    aes(x = pop, y = after_stat(count)), fill = "maroon", col="white",alpha=0.5)+
+  scale_x_log10(name = "Population Size",breaks=c(10^6, 10^7, 10^8, 10^9),
+                labels = c("1","10","100","1000 Millions"))+
+  theme_classic()+
+  ylab("Number of countries")+
+  theme_bw()+
+  scale_fill_carto_d(name= "gdpPercap > 10000$",type="qualitative")+
+    ggtitle("after_stat(count)")
+
+  
+  gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot()+
+  geom_density(aes(x = pop, y = after_stat(scaled)), bw = 0.5, fill="grey90",col="white", alpha = 0.5)+
+   geom_density(data = gapminder %>% filter(year == "2007", continent == "Asia"),
+    aes(x = pop, y = after_stat(scaled)), fill = "maroon", col="white",alpha=0.5)+
+  scale_x_log10(name = "Population Size",breaks=c(10^6, 10^7, 10^8, 10^9),
+                labels = c("1","10","100","1000 Millions"))+
+  theme_classic()+
+  ylab("Scaled Density")+
+  theme_bw()+
+  scale_fill_carto_d(name= "gdpPercap > 10000$",type="qualitative")+
+    ggtitle("after_stat(scaled)")
+
+  grid.arrange(p1, p2, p3, ncol=3)
+```
+
+## Multiple Distribution:  Pyramid chart
+
+**Data preprocessing step**
+
+```{r eval=F}
+dat <- gapminder %>% filter(year == "2007")
+dat$interval <- cut(dat$lifeExp, breaks=seq(25,85,5))
+temp <- dat %>% 
+  group_by(gdpPercap<10000, interval) %>%
+  count()
+
+names(temp)[1]<-"gdp_select"
+temp$gdp_select<-factor(temp$gdp_select, 
+                        label=c("< 10,000$",">= 10,000$"))
+temp1 <- temp%>%filter(gdp_select == ">= 10,000$")
+temp2 <- temp%>%filter(gdp_select == "< 10,000$")
+```
+
+**Create pyramid chart step**
+
+```{r eval=F}
+ggplot(data = temp, aes(x = n, 
+                        y = interval, 
+                       fill = gdp_select))+
+  geom_bar(data = temp1, stat = "identity")+
+  geom_bar(data = temp2, stat = "identity")+
+  ylab("Life Expectancy (year)\n ")+
+  scale_fill_manual(name = "GDP per capita", 
+                    values = c("steelblue","orange"))+
+  scale_x_continuous(name = "\n Number of countries",
+                     limits = c(-40,40), 
+                     breaks = seq(-40,40,10),
+                     labels = c(seq(40,10,-10), 
+                                seq(0,40,10)))
+```
+
+
+## Multiple Distribution:  Boxplot, Jitter and Violin plot
+
+
+- `geom_boxplot()`
+
+- `geom_jitter()`
+
+- `geom_violin()`
+
+
+```{r fig.height = 3.5}
+dat <- read.csv("boxplot.csv")
+dat %>% ggplot(aes(x = name, y = value, fill = name))+
+  geom_boxplot(show.legend = F)+
+  theme_minimal()
+```
+
+
+### Adding Points
+
+**Better ? Good visualization ?**
+
+```{r fig.height = 3.5}
+dat %>% ggplot(aes(x = name, y = value, fill = name))+
+  geom_boxplot(show.legend = F)+
+  geom_point(col = "grey60", alpha=0.7, 
+              size = 0.9, show.legend = F)+
+  theme_minimal()
+```
+
+### Adding Jitter
+
+**Better ? Good visualization ?**
+
+```{r fig.height = 3.5}
+dat %>% ggplot(aes(x = name, y = value, fill = name))+
+  geom_boxplot(show.legend = F)+
+  geom_jitter(col = "grey60", alpha=0.6, 
+              size = 0.7, show.legend = F)+
+  theme_minimal()
+```
+
+
+### Using Violin plot
+
+**Better ? Good visualization ?**
+
+```{r fig.height = 3.5}
+dat %>% ggplot(aes(x = name, y = value, fill = name))+
+    geom_violin(width = 1.6)+
+    geom_boxplot(color = "white", show.legend = F, 
+                 width = 0.1, alpha = 0.2)+
+  theme_minimal()
+```
+
+### Violin plot
+
+พัฒนาการด้านสุขภาพของประชากรโลก
+
+```{r echo=F, fig.height = 5}
+gapminder %>%
+  ggplot(aes(x = year, y = lifeExp, group = year))+
+  geom_boxplot(fill = "steelblue", alpha = 0.8)+
+  geom_text(data = gapminder %>% filter(year == 1992, lifeExp<30),
+            aes(label = country), nudge_y=3)+
+  ylim(0,85)+
+  scale_x_continuous(breaks = seq(1952, 2007, 5),
+                     label = seq(1952, 2007, 5))+
+  theme_minimal()
+```
+
+## Multiple Distribution: Ridge line plot
+
+
+เหมาะสำหรับเปรียบเทียบการแจกแจงของตัวแปรที่มีการเปลี่ยนแปลงตามเวลา แต่ก็สามารถใช้เปรียบเทียบระหว่างกลุ่มหลายกลุ่มได้ package-ggridges เป็น ggplot2 extension ตัวหนึ่งที่สามารถใช้สร้างแผนภาพดังกล่าวได้
+
+-   `geom_ridgeline()`
+
+-   `geom_ridgeline_gradient()`
+
+-   `geom_density_ridges()`
+
+-   `geom_density_ridges_gradient()`
+
+
+```{r}
+#install.packages("ggridges")
+library(ggridges)
+gapminder %>% 
+  ggplot(aes(y = factor(year), x = lifeExp, 
+             fill = factor(year)))+
+  geom_density_ridges(scale = 2, 
+                      rel_min_height = 0.01,
+                      bandwidth = 4) +
+  scale_fill_discrete(guide = FALSE) +
+  theme_minimal()
+```
+
+`geom_density_ridges_gradient()`
+
+```{r}
+gapminder %>% 
+  ggplot(aes(y = factor(year), x = lifeExp, 
+             fill = ..x..))+
+  geom_density_ridges_gradient(scale = 2.5, 
+                               rel_min_height = 0.01,
+                               bandwidth = 3) +
+  ylab("")+
+  scale_fill_viridis_c(option = "D")+
+  guides(fill = F)+
+  theme_minimal()
+
+
+```{r echo=F, fig.height=6}
+gapminder %>% 
+  ggplot(aes(y = factor(year), x = lifeExp, fill = gdpPercap > 20000))+
+  geom_density_ridges(scale = 2, rel_min_height = 0.01,
+                      bandwidth = 4, alpha=0.5) +
+  scale_fill_carto_d()+
+  ylab("")+
+  theme_minimal()
+```
+
+```
+
+
+
+
+
