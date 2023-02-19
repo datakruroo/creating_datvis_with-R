@@ -1,0 +1,481 @@
+---
+title: "Data Representation"
+output: html_notebook
+---
+
+# Visualizing Amounts
+
+บทเรียนนี้จะกล่าวถึงการสร้าง barplot, dotplot, lollipop plot และ heatmap
+
+## Various Barplots
+
+`geom_bar()` ใช้สร้าง barplot ได้ทั้ง simple barplot, grouped barplot และ stacked barplot มีอาร์กิวเมนท์สำคัญได้แก่
+
+-   `data` และ `mapping`
+
+-   `stat = "count"` หรือ `"identity"`
+
+-   `position = "stack"` หรือ `identity`, `dodge`
+
+-   `width`
+
+-   `orientation`
+
+-   `na.rm`
+
+ตัวอย่างการสร้าง barplot
+
+```{r}
+gapminder %>% filter(year == "2007") %>%
+  ggplot()+
+  geom_bar(aes(x = continent, fill=continent),
+           position = "identity")+
+  ggtitle("Simple Barplot, position = 'identity'")
+```
+
+```{r}
+gapminder %>% filter(year == "2007") %>% 
+  ggplot()+
+  geom_bar(aes(x = continent, fill = lifeExp > 70),
+           position = "dodge")+
+    ggtitle("Grouped Barplot, position = 'dodge'")
+```
+
+```{r}
+gapminder %>% filter(year == "2007") %>% 
+  ggplot()+
+  geom_bar(aes(x = continent, fill = lifeExp > 70),
+           position = "stack")+
+    ggtitle("Stacked Barplot, position = 'stack'")
+```
+
+## Dotplots
+
+เหมือน barplot แต่เปลี่ยนจากการใช้ความยาวของแท่งสี่เหลี่ยมแทนข้อมูล เป็นการใช้จุดแทน
+
+```{r}
+gapminder %>% filter(year == "2007") %>%
+  arrange(desc(lifeExp)) %>%
+  head(10) %>%
+  ggplot(aes(y=country, x=lifeExp))+
+  geom_point(aes(size=pop),col = "steelblue")+
+  theme_light()+
+  scale_size(name = "population size",range=c(3,10),
+             breaks = c(10^6, 10^7, 10^8),
+             labels = c("1", "10", "100 Million"))+
+  scale_y_discrete(name = "")+
+  scale_x_continuous("Life Expectancy (year)")
+```
+
+## Lollipop plot
+
+เหมือน dotplot แต่มีการใช้ segment ลากระหว่างแกนกับจุด เพื่อให้ชัดเจนเหมือน barplot มากขึ้น
+
+```{r}
+gapminder %>% filter(year == "2007") %>%
+  arrange(desc(lifeExp)) %>%
+  head(10) %>%
+  ggplot(aes(y=reorder(country, lifeExp), x=lifeExp))+
+  geom_segment(aes(x=70, y=reorder(country, lifeExp),
+                   xend = lifeExp,
+                   yend = reorder(country, lifeExp)), linetype = 3, col="grey60")+
+  geom_point(aes(size=pop),col = "steelblue")+
+  theme_classic()+
+  scale_size(name = "population size",range=c(3,10),
+             breaks = c(10^6, 10^7, 10^8),
+             labels = c("1", "10", "100 Million"))+
+  scale_y_discrete(name = "")+
+  scale_x_continuous("Life Expectancy (year)")
+```
+
+## Heatmap
+
+heatmap เหมือนกับตารางข้อมูล ที่มีการใช้สีแทนปริมาณข้อมูล สามารถใช้ได้กับทั้งข้อมูล cross-sectional data และ time-series data ซึ่งมีประสิทธิภาพสูงกว่าการใช้กราฟเส้น
+
+```{r}
+gapminder %>% filter(continent == "Asia") %>%
+  ggplot(aes(x = year, y = reorder(country, lifeExp), fill = lifeExp))+
+  geom_tile()+
+  ylab(" ")+
+  scale_fill_viridis_c(name = "Life Expectancy",direction = 1, option = "E",
+                       breaks = seq(30,80,10))+ theme_classic()
+```
+
+## กิจกรรม
+
+ขอให้สร้างทัศนภาพข้อมูลเพื่อนำเสนอ
+
+1.  ในปี ค.ศ. 2007 ในแต่ละทวีปมีจำนวนประเทศที่มี gdpPercap มากกว่า 10000\$ กับน้อยกว่าหรือเท่ากับ 10000\$ แตกต่างกันอย่างไร
+2.  ในช่วงปี ค.ศ. 1952 - 2007 แนวโน้มอายุขัยเฉลี่ยของประชากรในประเทศไทย และญี่ปุ่น เป็นอย่างไร
+3.  ในช่วงปี ค.ศ. 1952 - 2007 gdpPercap ของแต่ละประเทศในโลก มีแนวโน้มเป็นอย่างไร
+
+# Visualizing Distribution
+
+-   single distribution
+
+-   multiple distributions
+
+## Single distribution: Histogram & Density plot
+
+ขอให้สร้าง histogram และ density plot เพื่อแสดงการแจกแจงของตัวแปร gdpPercap, lifeExp และ pop ของประเทศต่าง ๆ ในปี ค.ศ. 2007
+
+## multiple distribution: Density plots
+
+ขอให้สร้าง density plot เพื่อใช้เปรียบเทียบการแจกแจงของ gdpPercap ระหว่างประเทศในทวีป Africa กับ Asia ในปี ค.ศ. 2007
+
+```{r}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot(aes(x = lifeExp, fill = gdpPercap > 10000))+
+  geom_density(col="white", alpha = 0.5)+
+  ylab("Density")+
+  theme_bw()+
+  scale_fill_brewer(name= "gdpPercap > 10000$",
+                    type="qual",
+                    palette = "Set2")
+```
+
+## multiple Density plots (Part of Whole)
+
+Density plot: Statistical transformations
+
+-   `after_stat(density)`
+
+-   `after_stat(count)`
+
+-   `after_stat(scaled)`
+
+จาก syntax ด้านล่าง ขอให้ผู้เรียนทดลองเปลี่ยน `after_stat()` ทั้งสามแบบ แล้วสังเกตผลลัพธ์ที่ได้
+
+```{r}
+gapminder %>% 
+  filter(year == "2007") %>%
+  ggplot()+
+  geom_density(aes(x = pop, y = after_stat(count)), fill="grey90",col="white", alpha = 0.5)+
+    geom_density(data = gapminder %>% filter(year == "2007", continent == "Asia"),
+    aes(x = pop, y = after_stat(count)), fill = "maroon", col="white",alpha=0.5)+
+  scale_x_log10(name = "Population Size",breaks=c(10^6, 10^7, 10^8, 10^9),
+                labels = c("1","10","100","1000 Millions"))+
+  theme_classic()+
+  ylab("Number of countries")+
+  theme_bw()+
+  scale_fill_carto_d(name= "gdpPercap > 10000$",type="qualitative")+
+    ggtitle("after_stat(count)")
+
+```
+
+## Pyramid Chart
+
+**Data preprocessing step**
+
+```{r eval=F}
+dat<-gapminder %>% 
+  filter(year == "2007")
+dat$interval <- cut(dat$lifeExp, breaks=seq(25,85,5))
+temp<-dat %>% 
+  group_by(gdpPercap<10000, interval) %>%
+  count()
+names(temp)[1]<-"select"
+temp[temp$select==FALSE,3]<-temp[temp$select==FALSE,3]*(-1)
+temp$select<-factor(temp$select, label=c("< 10,000$",">= 10,000$"))
+```
+
+**Create pyramid chart step**
+
+```{r eval=F}
+ggplot(data= temp, aes(x=n, y= interval, fill = select))+
+  geom_bar(data=temp%>%filter(select == ">= 10,000$"),
+           stat="identity")+
+  geom_bar(data=temp%>%filter(select == "< 10,000$"),
+            stat="identity")+
+  theme_minimal()+
+  ylab("Life Expectancy (year)\n ")+
+  scale_fill_manual(name = "GDP per capita", values=c("steelblue","orange"))+
+  scale_x_continuous(name = "\n Number of countries",limits=c(-40,40), breaks=seq(-40,40,10),
+                     labels = c(seq(40,10,-10), seq(0,40,10)))
+```
+
+## Boxplot, Violin plot and Jitter plot
+
+ขอให้สร้าง boxplot เพื่อวิเคราะห์แนวโน้มของอายุขัยเฉลี่ยของประชากรของประเทศต่าง ๆ ตั้งแต่ปี 1952 - 2007
+
+## Ridgeline plot
+
+ขอให้สร้าง Ridgeline plot เพื่อตรวจสอบแนวโน้มของ likeExp ของประเทศต่าง ๆ ในช่วงปี 1952 - 2007
+
+```{r echo=F, fig.height = 6}
+library(ggridges)
+gapminder %>% 
+  ggplot(aes(y = factor(year), x = lifeExp, 
+             fill = factor(year)))+
+  geom_density_ridges(scale = 2, rel_min_height = 0.01,
+                      bandwidth = 4) +
+  scale_fill_discrete(guide = FALSE) +
+  theme_minimal()
+```
+
+# Visualizing Proportion
+
+## กิจกรรม : Side-by-Side barplot
+
+สร้างแผนภูมิแท่งเปรียบเทียบร้อยละระหว่างประเทศที่อายุขัยเฉลี่ยของประชากรต่ำกว่า 60 ปี กับมากกว่าหรือเท่ากับ 60 ปี (ปี 2007)
+
+ขั้นแรก เตรียมข้อมูลก่อน
+
+```{r}
+mydat<- gapminder %>% filter(year == "2007") %>% 
+  group_by(lifeExp < 60) %>%
+  summarise(count = n()) %>%
+  mutate(percent = round(count*100/sum(count),1))
+mydat
+```
+
+ขั้นที่สอง สร้างแผนภูมิแท่งเปรียบเทียบจากข้อมูล `mydat`
+
+```{r fig.height=3.5}
+ggplot(data = mydat, 
+       aes(x = `lifeExp < 60`, y = percent,
+          fill = `lifeExp < 60`))+
+  geom_bar(stat = "identity")
+```
+
+## กิจกรรม : 100% Stacked barplot
+
+จากแผนภูมิแท่งเปรียบเทียบ เราสามารถแปลงเป็น 100 % stacked barplot ได้ โดยกำหนดอาร์กิวเมนท์​ใน `geom_bar(position = "fill")` ดังนี้
+
+```{r fig.height= 3.5}
+ggplot(data = mydat, 
+       aes(x = "", y = percent,
+          fill = `lifeExp < 60`))+
+  geom_bar(stat = "identity", position = "fill")
+```
+
+## กิจกรรม : Pie Chart
+
+จากแผนภูมิ 100% stacked bar chart เราสามารถเปลี่ยนให้เป็น pie chart ได้ โดยบิดระบบพิกัดให้เป็นเชิงขั้ว ดังนี้
+
+```{r eval = F}
+ggplot(data = mydat, 
+       aes(x = "", y = percent,
+          fill = `lifeExp < 60`))+
+  geom_bar(stat = "identity", position = "stack")+
+  geom_text(aes(
+   label = paste(`lifeExp < 60`,"\n",percent,"%")),
+            position = position_stack(vjust = 0.5),
+            col = "white")+
+  scale_fill_manual(values = c("grey","orange"))+
+  coord_polar(theta = "y", start = 0)+
+  theme_void() + guides(fill = F)
+```
+
+## กิจกรรม :100% stacked barplot
+
+ลองสร้าง 100% stacked barplot เพื่อวิเคราะห์แนวโน้มของจำนวนประเทศที่ถูกจำแนกเป็น 3 กลุ่ม ได้แก่ ยากจน (gdpPercap \< 10000) รายได้ปานกลาง (10000 \<= gdpPercap \<200000) และร่ำรวย (gdpPercap \>= 20000) ในช่วงปี 1952 - 2007
+
+## กิจกรรม :100% stacked area plot
+
+ตัวอย่าง syntax สำหรับสร้าง 100% stack area plot.
+
+```{r echo = F}
+gapminder %>%
+  mutate(income = ifelse(gdpPercap<10000,0,
+                         ifelse(gdpPercap>20000,2,1)),
+         income = factor(income,
+                         labels=c("poor","medium","rich")))%>%
+  group_by(year, income) %>%
+  summarise(n = n()) %>%
+  mutate(percent = n*100/sum(n))%>%
+  ggplot(aes(x = year, y= percent, fill = income))+
+  geom_area(position = "fill")+
+  scale_y_continuous(name="Percentage",
+                     labels=paste(seq(0,100,25),"%"))+
+  theme_minimal()
+```
+
+## กิจกรรม Likert plot
+
+1.  **เตรียมข้อมูล**
+
+```{r eval = F}
+# importing data
+item1<-c(14,11,15,36,24)
+item2<-c(3,6,23,52,16)
+level<-factor(c(1,2,3,4,5),
+        levels = c(1,2,3,4,5),
+        labels = c("Strongly disagree",
+                    "Somewhat disagree",
+                    "Neutral",
+                    "Somewhat agree",
+                    "Strongly agree"))
+dat<-data.frame(item1, item2,level)
+# calcuate percentage
+dat <- dat %>%
+  mutate(percent1 = item1*100/sum(item1),
+         percent2 = item2*100/sum(item2))
+```
+
+2.  **สร้างทัศนภาพ**
+
+```{r eval = F}
+dat %>% 
+  gather(item1, item2, key = "item", value = "percent") %>%
+  ggplot(aes(x = item, y = percent, fill = level))+
+  geom_bar(stat = "identity",position = "fill", alpha=0.8)+
+  geom_text(aes(label = percent), 
+            position = position_fill(vjust = 0.5))+
+  scale_fill_brewer(name = "" ,type="div", palette = "Spectral",
+                    direction = 1)+
+  scale_y_continuous(name = "\n Percentage", 
+                     labels = scales::percent_format())+
+  scale_y_reverse()+
+  theme_classic()+
+  coord_flip()+
+  theme(legend.position = "top")
+```
+
+ลองทำด้วยตัวเอง
+
+ชุดข้อมูลตัวอย่างคือ `gpax_dat.csv`
+
+-   มีสมาธิจดจ่ออยู่กับบทเรียน (stu.engage1)
+
+-   รับผิดชอบงานที่ได้รับมอบหมาย (stu.engage2)
+
+-   ทุ่มเทพลังกายใจเรียนรู้เพิ่มเติม (stu.engage3)
+
+-   กระตือรือร้นที่จะมีส่วนร่วมในชั้นเรียน (stu.engage4)
+
+ลองสร้าง Likert plot จากชุดข้อมูลดังกล่าว ผลลัพธ์ที่ได้เป็นอย่างไร ?
+
+# Visualizing Nested Proportion
+
+## กิจกรรม Treemap
+
+พิจารณาตารางแจกแจงความถี่สองทางต่อไปนี้
+
+```{r}
+temp <- gapminder %>% filter(year == "2007") %>%
+  group_by(continent, pop > 10^8) %>%
+  count()
+temp
+```
+
+ลองสร้าง treemap เพื่อแจกแจงความถี่ของตารางข้อมูลข้างต้น โดยปรับคำสั่งจากตัวอย่างคำสั่งด้านล่าง
+
+```{r echo=F, fig.height=5}
+
+temp %>% 
+  mutate(`lifeExp > 70` = factor(`lifeExp > 70`,
+                                 levels = c(FALSE, TRUE),
+                                  labels=c("No","lifeExp > 70 yrs.")))%>%
+  ggplot(aes(area = n, 
+             fill = `lifeExp > 70`, 
+             subgroup = `lifeExp > 70`)) +
+  geom_treemap()+
+  geom_treemap_subgroup_border(col = "black")+ 
+  geom_treemap_text(aes(label = continent),
+                    col = "grey")+
+  geom_treemap_subgroup_text(col="white")+
+  scale_fill_carto_d(palette = 5) + guides(fill = F)
+```
+
+# Visualizing Trends
+
+## line plot
+
+ลองพิจารณาชุดคำสั่งต่อไปนี้ แล้วสังเกตผลลัพธ์ที่ได้
+
+```{r echo = F, fig.height=6}
+library(ggrepel)
+gapminder %>% 
+  ggplot(aes(x = year, 
+             y=gdpPercap,
+             group = country))+
+  geom_line(aes(col = continent == "Europe", linewidth = continent =="Europe"))+
+  geom_text_repel(data = gapminder%>%
+                    filter(year == "2007",
+                           continent == "Europe")%>%
+                    arrange(desc(gdpPercap))%>%
+                    head(),
+                  aes(x = year, y=gdpPercap,
+                      label = country),
+                  nudge_x = 7,
+                  segment.color = "grey",
+                  segment.curvature	=0.5,
+                  segment.linetype =2,
+                  min.segment.length = 0.5,
+                  size = 3,
+                  col="steelblue")+
+   geom_text_repel(data = gapminder%>%
+                     filter(year == "2007",
+                            continent == "Europe")%>%
+                    arrange(desc(gdpPercap))%>%
+                    tail(),
+                  aes(x = year, y=gdpPercap,
+                      label = country),
+                  nudge_x = 7,
+                  segment.color = "grey",
+                  segment.linetype =2,
+                  segment.curvature	=0.5,
+                  min.segment.length = 0.5,
+                  size = 3,
+                  col="steelblue")+
+  scale_linewidth_discrete(range=c(0.5,1))+
+  scale_color_manual(values=c("grey80","steelblue"))+
+  scale_x_continuous(limits=c(1950,2015))+
+  theme_classic()+
+  guides(col = F, linewidth = F)
+```
+
+note: ชุดคำสั่งข้างต้นใช้ feature หลายตัวจาก ggrepel รายละเอียดของการกำหนดอาร์กิวเมนท์ต่าง ๆ สามารถศึกษาเพิ่มเติมได้จาก <https://ggrepel.slowkow.com/articles/examples.html>
+
+## Trends: dot plot
+
+ลองพิจารณาชุดคำสั่งต่อไปนี้ แล้วสังเกตผลลัพธ์ที่ได้
+
+```{r echo=F, fig.height=3}
+#data preprocessing
+temp<-gapminder %>%
+  filter(year %in% c(1952, 2007), continent == "Asia") %>%
+  select(country, year, gdpPercap) %>%
+  spread(key = year, value = gdpPercap)%>%
+  arrange(desc(`2007`))%>%
+  mutate(order = order(`2007`))
+# create dot plot
+temp%>%
+  ggplot(aes(y = order, x = `2007`))+
+  geom_segment(aes(xend = `1952`, yend = order), linetype=3, col="grey")+
+  geom_point(col = "steelblue")+
+  geom_point(aes(x = `1952`), col="orange", shape = 1)+
+  theme_test()+
+  scale_x_continuous(name="\n Income")+
+  scale_y_continuous(name ="", breaks=seq(1,33,1),
+                     labels=rev(temp$country))+
+  ggtitle("55 years GDP")
+```
+
+## Trends: slope plot
+
+ลองพิจารณาชุดคำสั่งต่อไปนี้ แล้วสังเกตผลลัพธ์ที่ได้
+
+```{r echo=F, fig.height=5}
+#data preprocessing
+temp<-gapminder %>%
+  filter(year %in% c(1952, 2007), 
+         continent == "Americas") %>%
+  select(country, year, gdpPercap) %>%
+  spread(key = year, value = gdpPercap)%>%
+  arrange(desc(`2007`))%>%
+  mutate(order = order(`2007`))
+# create dot plot
+temp%>%
+  ggplot()+
+  geom_point(aes(x =0.5,y = `2007`),col = "steelblue", alpha =0.6)+
+  geom_point(aes(x=0, y=`1952`),col="orange", alpha =0.6)+
+  scale_x_continuous(limits=c(-0.25,0.75))+
+  geom_segment(aes(x=0, xend = 0.5, y=`1952`, yend = `2007`), 
+               col="grey",
+               linetype=3,
+               linewidth=0.3)+
+  theme_classic()
+```
